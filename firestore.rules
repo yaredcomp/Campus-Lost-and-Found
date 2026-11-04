@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidItem(data) {
+      return data.ownerId is string &&
+             data.ownerId == request.auth.uid &&
+             (!('ownerEmail' in data) || (data.ownerEmail is string && data.ownerEmail.size() <= 200)) &&
+             (!('ownerName' in data) || (data.ownerName is string && data.ownerName.size() <= 150)) &&
+             data.type in ['LOST', 'FOUND'] &&
+             data.title is string &&
+             data.title.size() > 0 &&
+             data.title.size() <= 250 &&
+             data.description is string &&
+             data.description.size() > 0 &&
+             data.description.size() <= 5000 &&
+             data.location is string &&
+             data.location.size() > 0 &&
+             data.location.size() <= 250 &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 1048576)) &&
+             (!('createdAt' in data) || data.createdAt is timestamp || data.createdAt == null);
+    }
+
+    match /items/{itemId} {
+      // Anyone authenticated can read campus lost & found listings
+      allow read: if isAuthenticated();
+
+      // Only the authenticated owner can create an item listing
+      allow create: if isOwner(request.resource.data.ownerId) &&
+                       isValidItem(request.resource.data);
+
+      // Only the item owner can update their listing, preserving ownerId
+      allow update: if isOwner(resource.data.ownerId) &&
+                       request.resource.data.ownerId == resource.data.ownerId &&
+                       isValidItem(request.resource.data);
+
+      // Only the item owner can delete their listing
+      allow delete: if isOwner(resource.data.ownerId);
+    }
+  }
+}

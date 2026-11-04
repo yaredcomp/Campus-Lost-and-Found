@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Item": {
+      "title": "Item",
+      "description": "Campus lost or found item listing",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the owner"
+        },
+        "ownerEmail": {
+          "type": "string",
+          "description": "Contact email of the owner"
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Display name of the owner"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["LOST", "FOUND"],
+          "description": "Item type: LOST or FOUND"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the item"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the item"
+        },
+        "location": {
+          "type": "string",
+          "description": "Campus location where lost or found"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Photo URL or image reference"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": [
+        "ownerId",
+        "type",
+        "title",
+        "description",
+        "location"
+      ]
+    }
+  },
+  "firestore": {
+    "/items/{itemId}": {
+      "schema": "Item",
+      "description": "Campus lost and found listings"
+    }
+  }
+}
